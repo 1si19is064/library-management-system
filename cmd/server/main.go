@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -35,6 +36,9 @@ func main() {
 	}
 
 	// Initialize Redis cache
+	fmt.Println("LOg-----------")
+	fmt.Println(cfg.RedisURL)
+	fmt.Println("LOg-----------")
 	redisClient, err := cache.NewRedisClient(cfg.RedisURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
