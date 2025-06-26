@@ -1,6 +1,6 @@
 # Library Management API
 
-A robust REST API for managing a fictional public library built with Go, PostgreSQL, Redis caching, and containerized with Docker.
+A robust REST API for managing a fictional public library built with Go, PostgreSQL and containerized with Docker.
 
 ## Architecture Overview
 
@@ -15,8 +15,6 @@ A robust REST API for managing a fictional public library built with Go, Postgre
 │   │   ├── postgres.go          # PostgreSQL connection
 │   │   └── migrations/
 │   │       └── 001_create_books.sql
-│   ├── cache/
-│   │   └── redis.go             # Redis cache implementation
 │   ├── models/
 │   │   └── book.go              # Data models
 │   ├── handlers/
@@ -38,7 +36,6 @@ A robust REST API for managing a fictional public library built with Go, Postgre
 ## Features
 
 - **Complete CRUD Operations**: Create, Read, Update, Delete books
-- **High Performance**: Redis caching with 15-minute TTL
 - **Database**: PostgreSQL with proper migrations
 - **REST API**: Clean RESTful endpoints using Gin framework
 - **Containerized**: Docker & Docker Compose setup
@@ -61,7 +58,6 @@ A robust REST API for managing a fictional public library built with Go, Postgre
 - **Language**: Go 1.21
 - **Framework**: Gin HTTP Framework
 - **Database**: PostgreSQL
-- **Cache**: Redis
 - **Containerization**: Docker & Docker Compose
 - **ORM**: GORM
 - **Migration**: golang-migrate
@@ -106,7 +102,6 @@ go mod download
 2. **Set environment variables**
 ```bash
 export DATABASE_URL="postgresql://postgres.wywkucanulrrkqgexwcp:Tejas%402001@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-export REDIS_URL="redis://default:hDbjDRpv9yi892LytkwuAs1yrKSw8cjL@redis-14159.c206.ap-south-1-1.ec2.redns.redis-cloud.com:14159"
 export ENVIRONMENT="development"
 ```
 
@@ -162,12 +157,6 @@ curl -X DELETE http://localhost:8080/api/v1/books/1
 
 ## Architecture Decisions
 
-### Caching Strategy
-- **Redis TTL**: 15 minutes for individual books and book lists
-- **Cache Keys**: Structured as `book:id` and `books:all`
-- **Cache-Aside Pattern**: Check cache first, fallback to database
-- **Cache Invalidation**: On create, update, delete operations
-
 ### Database Design
 - **PostgreSQL**: Reliable, ACID-compliant relational database
 - **GORM**: Type-safe ORM with migration support
@@ -211,7 +200,6 @@ go test -cover ./...
 ## Performance Features
 
 - **Connection Pooling**: Database connection optimization
-- **Caching Layer**: Redis for fast data retrieval
 - **JSON Streaming**: Efficient JSON encoding/decoding
 - **Middleware**: Request logging and recovery
 
@@ -219,7 +207,6 @@ go test -cover ./...
 
 Environment variables:
 - `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
 - `ENVIRONMENT`: Application environment (development/production)
 - `PORT`: HTTP server port (default: 8080)
 
@@ -227,5 +214,4 @@ Environment variables:
 
 - **Health Endpoint**: `/health` for service health
 - **Database Health**: Connection status check
-- **Cache Health**: Redis connection status
 - **Structured Logging**: JSON formatted logs

@@ -22,22 +22,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: library_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - library_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   # Go Application
   app:
     build:
@@ -47,15 +31,12 @@ services:
     environment:
       # Use external database URLs for production
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password123@postgres:5432/library?sslmode=disable}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       PORT: "8080"
     ports:
       - "8080:8080"
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - library_network
@@ -68,8 +49,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
     driver: local
 
 networks:

@@ -5,68 +5,41 @@ import (
 	"fmt"
 	"strconv"
 
-	"library-management-system/internal/cache"
 	"library-management-system/internal/models"
 
 	"gorm.io/gorm"
 )
 
 type BookService struct {
-	db    *gorm.DB
-	cache *cache.RedisClient
+	db *gorm.DB
 }
 
-func NewBookService(db *gorm.DB, cache *cache.RedisClient) *BookService {
+func NewBookService(db *gorm.DB) *BookService {
 	return &BookService{
-		db:    db,
-		cache: cache,
+		db: db,
 	}
 }
 
 func (s *BookService) GetAllBooks(ctx context.Context) ([]models.Book, error) {
-	cacheKey := "books:all"
-
-	// Try to get from cache first
 	var books []models.Book
-	if err := s.cache.Get(ctx, cacheKey, &books); err == nil {
-		return books, nil
-	}
 
-	// If not in cache, get from database
+	//get from database
 	if err := s.db.Find(&books).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch books from database: %w", err)
-	}
-
-	// Store in cache for future requests
-	if err := s.cache.Set(ctx, cacheKey, books); err != nil {
-		// Log error but don't fail the request
-		fmt.Printf("Failed to cache books list: %v\n", err)
 	}
 
 	return books, nil
 }
 
 func (s *BookService) GetBookByID(ctx context.Context, id uint) (*models.Book, error) {
-	cacheKey := fmt.Sprintf("book:%d", id)
-
-	// Try to get from cache first
 	var book models.Book
-	if err := s.cache.Get(ctx, cacheKey, &book); err == nil {
-		return &book, nil
-	}
 
-	// If not in cache, get from database
+	//get from database
 	if err := s.db.First(&book, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("book not found")
 		}
 		return nil, fmt.Errorf("failed to fetch book from database: %w", err)
-	}
-
-	// Store in cache for future requests
-	if err := s.cache.Set(ctx, cacheKey, book); err != nil {
-		// Log error but don't fail the request
-		fmt.Printf("Failed to cache book %d: %v\n", id, err)
 	}
 
 	return &book, nil
@@ -84,9 +57,6 @@ func (s *BookService) CreateBook(ctx context.Context, req *models.CreateBookRequ
 	if err := s.db.Create(book).Error; err != nil {
 		return nil, fmt.Errorf("failed to create book: %w", err)
 	}
-
-	// Invalidate cache
-	s.invalidateCache(ctx)
 
 	return book, nil
 }
@@ -113,9 +83,6 @@ func (s *BookService) UpdateBook(ctx context.Context, id uint, req *models.Updat
 		return nil, fmt.Errorf("failed to update book: %w", err)
 	}
 
-	// Invalidate cache
-	s.invalidateCache(ctx)
-
 	return book, nil
 }
 
@@ -130,20 +97,7 @@ func (s *BookService) DeleteBook(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to delete book: %w", err)
 	}
 
-	// Invalidate cache
-	s.invalidateCache(ctx)
-
 	return nil
-}
-
-func (s *BookService) invalidateCache(ctx context.Context) {
-	// Delete all book-related cache entries
-	if err := s.cache.DeletePattern(ctx, "book:*"); err != nil {
-		fmt.Printf("Failed to invalidate book cache: %v\n", err)
-	}
-	if err := s.cache.Delete(ctx, "books:all"); err != nil {
-		fmt.Printf("Failed to invalidate books list cache: %v\n", err)
-	}
 }
 
 func (s *BookService) ParseID(idStr string) (uint, error) {

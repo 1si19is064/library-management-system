@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"library-management-system/internal/cache"
 	"library-management-system/internal/config"
 	"library-management-system/internal/database"
 	"library-management-system/internal/handlers"
@@ -35,17 +33,8 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Initialize Redis cache
-	fmt.Println("LOg-----------")
-	fmt.Println(cfg.RedisURL)
-	fmt.Println("LOg-----------")
-	redisClient, err := cache.NewRedisClient(cfg.RedisURL)
-	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
-	}
-
 	// Initialize services
-	bookService := services.NewBookService(db, redisClient)
+	bookService := services.NewBookService(db)
 
 	// Initialize handlers
 	bookHandler := handlers.NewBookHandler(bookService)
